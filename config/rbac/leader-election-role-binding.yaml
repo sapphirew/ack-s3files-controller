@@ -1,0 +1,14 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  namespace: ack-system
+  name: s3files-leader-election-rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: s3files-leader-election-role
+subjects:
+- kind: ServiceAccount
+  name: ack-s3files-controller
+  namespace: ack-system
