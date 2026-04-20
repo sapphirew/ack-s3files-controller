@@ -13,11 +13,7 @@ description: |-
   **About Amazon S3Files**
 
 
-<<<<<<< HEAD
   S3 Files is a shared file system that connects any AWS compute directly with your data in Amazon S3. It provides fast, direct access to all of your S3 data as files with full file system semantics and low-latency performance, without your data ever leaving S3. That means file-based applications, agents, and teams can now access and work with S3 data as a file system using the tools they already depend on. You no longer need to duplicate your data or cycle it between object storage and file system storage. Now, file-based tools and applications across your organization can work with your S3 data directly from any compute instance, container, and function using the tools your teams and agents already depend on. With S3 Files, Amazon S3 is the first and only cloud object store that provides fully-featured, high-performance file system access to your data. S3 Files gives you the performance and simplicity of a file system with the scalability, durability, and cost-effectiveness of S3. There are no data silos, no synchronization complexities, and no tradeoffs. File and object storage, together in one place without compromise. 
-=======
-  {ADD YOUR DESCRIPTION HERE}
->>>>>>> 6ef375a (feat: Bootstrap s3files-controller)
 
 
   **About the AWS Controllers for Kubernetes**
