@@ -27,3 +27,53 @@ var (
 	_ = &aws.JSONValue{}
 	_ = ackv1alpha1.AWSAccountID("")
 )
+
+// Specifies a rule that controls when cached data expires from the file system
+// based on last access time.
+type ExpirationDataRule struct {
+	DaysAfterLastAccess *int64 `json:"daysAfterLastAccess,omitempty"`
+}
+
+// Specifies a rule that controls how data is imported from S3 into the file
+// system.
+type ImportDataRule struct {
+	Prefix       *string `json:"prefix,omitempty"`
+	SizeLessThan *int64  `json:"sizeLessThan,omitempty"`
+	Trigger      *string `json:"trigger,omitempty"`
+}
+
+// Contains information about an S3 File System Access Point returned in list
+// operations.
+type ListAccessPointsDescription struct {
+	FileSystemID *string `json:"fileSystemID,omitempty"`
+	Name         *string `json:"name,omitempty"`
+	OwnerID      *string `json:"ownerID,omitempty"`
+	Status       *string `json:"status,omitempty"`
+}
+
+// Contains information about an S3 File System returned in list operations.
+type ListFileSystemsDescription struct {
+	Bucket        *string      `json:"bucket,omitempty"`
+	CreationTime  *metav1.Time `json:"creationTime,omitempty"`
+	FileSystemARN *string      `json:"fileSystemARN,omitempty"`
+	FileSystemID  *string      `json:"fileSystemID,omitempty"`
+	Name          *string      `json:"name,omitempty"`
+	OwnerID       *string      `json:"ownerID,omitempty"`
+	RoleARN       *string      `json:"roleARN,omitempty"`
+	Status        *string      `json:"status,omitempty"`
+	StatusMessage *string      `json:"statusMessage,omitempty"`
+}
+
+// Contains information about a mount target returned in list operations.
+type ListMountTargetsDescription struct {
+	FileSystemID  *string `json:"fileSystemID,omitempty"`
+	OwnerID       *string `json:"ownerID,omitempty"`
+	Status        *string `json:"status,omitempty"`
+	StatusMessage *string `json:"statusMessage,omitempty"`
+}
+
+// A key-value pair for resource tagging.
+type Tag struct {
+	Key   *string `json:"key,omitempty"`
+	Value *string `json:"value,omitempty"`
+}

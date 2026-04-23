@@ -1,5 +1,118 @@
 ignore:
   resource_names:
-      - AccessPoint
-      - FileSystem
-      - MountTarget
+    - AccessPoint
+    - MountTarget
+  field_paths:
+    # The CreateFileSystem API response includes a top-level "Status" field
+    # containing LifeCycleState. This conflicts with the Kubernetes Status
+    # subresource. We ignore this path and instead source LifeCycleState
+    # via from.operation/from.path on the GetFileSystem API.
+    - CreateFileSystemOutput.Status
+    # ClientToken is an idempotency token auto-filled by the AWS SDK
+    # when nil. Not exposed to users.
+    - CreateFileSystemInput.ClientToken
+    - CreateFileSystemOutput.ClientToken
+
+resources:
+  FileSystem:
+    tags:
+      ignore: true
+    synced:
+      when:
+        - path: Status.LifeCycleState
+          in:
+            - available
+    exceptions:
+      errors:
+        404:
+          code: ResourceNotFoundException
+      terminal_codes:
+        - ValidationException
+        - AccessDeniedException
+    update_operation:
+      custom_method_name: customUpdateFileSystem
+    print:
+      order_by: index
+      additional_columns:
+        - name: FILESYSTEMID
+          json_path: .status.fileSystemID
+          type: string
+          index: 0
+        - name: LIFECYCLE
+          json_path: .status.lifeCycleState
+          type: string
+          index: 1
+        - name: BUCKET
+          json_path: .spec.bucket
+          type: string
+          index: 2
+    fields:
+      # --- Status fields ---
+      # FileSystemARN: needs from + is_read_only because FileSystemArn
+      # auto-maps to ACKResourceMetadata.ARN, not a separate status field
+      FileSystemARN:
+        is_read_only: true
+        from:
+          operation: GetFileSystem
+          path: FileSystemArn
+      # LifeCycleState: the raw "Status" field from the API is ignored
+      # (conflicts with K8s Status subresource). We populate this field
+      # manually in the sdk_read_one_post_set_output hook template by
+      # reading resp.Status from the GetFileSystem response.
+      LifeCycleState:
+        is_read_only: true
+        type: "*string"
+      # --- Immutable spec fields (set at creation, cannot change) ---
+      Bucket:
+        is_immutable: true
+      KMSKeyID:
+        is_immutable: true
+      Prefix:
+        is_immutable: true
+      RoleARN:
+        is_immutable: true
+      # AcceptBucketWarning is create-only and not returned by GetFileSystem.
+      # compare.is_ignored prevents false diffs on reconciliation.
+      AcceptBucketWarning:
+        is_immutable: true
+        compare:
+          is_ignored: true
+      # --- Custom spec fields ---
+      # Policy is the FileSystemPolicy JSON document, managed via
+      # Put/Get/DeleteFileSystemPolicy sub-resource APIs.
+      Policy:
+        type: "*string"
+        is_iam_policy: true
+      # ImportDataRules and ExpirationDataRules are sourced from the
+      # PutSynchronizationConfiguration operation. This tells the code
+      # generator to use the full SDK shapes (with all fields) and place
+      # them as spec fields. compare.is_ignored because we handle
+      # comparison in custom hooks (latestVersionNumber from Get must
+      # not trigger diffs).
+      ImportDataRules:
+        from:
+          operation: PutSynchronizationConfiguration
+          path: ImportDataRules
+        compare:
+          is_ignored: true
+      ExpirationDataRules:
+        from:
+          operation: PutSynchronizationConfiguration
+          path: ExpirationDataRules
+        compare:
+          is_ignored: true
+      # --- Custom status fields ---
+      # LatestVersionNumber stores the version from
+      # GetSynchronizationConfiguration for optimistic concurrency on Put.
+      LatestVersionNumber:
+        from:
+          operation: GetSynchronizationConfiguration
+          path: LatestVersionNumber
+        is_read_only: true
+    # No sdk_create_post_set_output hook needed — sub-resources (Policy,
+    # SynchronizationConfiguration) require "available" state and will be
+    # applied on the first update reconciliation after the FileSystem
+    # transitions from "creating" to "available".
+    hooks:
+      sdk_read_one_post_set_output:
+        template_path: hooks/file_system/sdk_read_one_post_set_output.go.tpl

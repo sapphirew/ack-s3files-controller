@@ -16,6 +16,7 @@ rules:
 - apiGroups:
   - s3files.services.k8s.aws
   resources:
+  - filesystems
   verbs:
   - get
   - list

@@ -13,21 +13,52 @@
 """Bootstraps the resources required to run the S3Files integration tests.
 """
 import logging
+import boto3
 
 from acktest.bootstrapping import Resources, BootstrapFailureException
+from acktest.bootstrapping.s3 import Bucket
+from acktest.bootstrapping.iam import Role
 
 from e2e import bootstrap_directory
 from e2e.bootstrap_resources import BootstrapResources
+
+# S3 Files is built on EFS technology, so the role must trust the
+# elasticfilesystem.amazonaws.com service principal (not s3files).
+# The role needs S3 bucket access plus EventBridge permissions for
+# change detection between the file system and the S3 bucket.
+S3FILES_ROLE_POLICIES = [
+    "arn:aws:iam::aws:policy/AmazonS3FullAccess",
+    "arn:aws:iam::aws:policy/AmazonEventBridgeFullAccess",
+]
+
+
+def _enable_bucket_versioning(bucket_name: str):
+    """S3 Files requires versioning enabled on the backing bucket."""
+    s3 = boto3.client("s3")
+    s3.put_bucket_versioning(
+        Bucket=bucket_name,
+        VersioningConfiguration={"Status": "Enabled"},
+    )
+    logging.info(f"Enabled versioning on bucket {bucket_name}")
+
 
 def service_bootstrap() -> Resources:
     logging.getLogger().setLevel(logging.INFO)
 
     resources = BootstrapResources(
-        # TODO: Add bootstrapping when you have defined the resources
+        FileSystemBucket=Bucket(
+            "ack-s3files-e2e-bucket",
+        ),
+        FileSystemRole=Role(
+            "ack-s3files-e2e-role",
+            principal_service="elasticfilesystem.amazonaws.com",
+            managed_policies=S3FILES_ROLE_POLICIES,
+        ),
     )
 
     try:
         resources.bootstrap()
+        _enable_bucket_versioning(resources.FileSystemBucket.name)
     except BootstrapFailureException as ex:
         exit(254)
 

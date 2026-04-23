@@ -39,6 +39,8 @@ import (
 	svctypes "github.com/aws-controllers-k8s/s3files-controller/apis/v1alpha1"
 	svcresource "github.com/aws-controllers-k8s/s3files-controller/pkg/resource"
 
+	_ "github.com/aws-controllers-k8s/s3files-controller/pkg/resource/file_system"
+
 	"github.com/aws-controllers-k8s/s3files-controller/pkg/version"
 )
 

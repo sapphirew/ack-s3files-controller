@@ -1,0 +1,14 @@
+apiVersion: s3files.services.k8s.aws/v1alpha1
+kind: FileSystem
+metadata:
+  name: $FILE_SYSTEM_NAME
+spec:
+  bucket: $BUCKET_ARN
+  roleARN: $ROLE_ARN
+  tags:
+    - key: Environment
+      value: testing
+    - key: Team
+      value: platform
+    - key: ManagedBy
+      value: ACK

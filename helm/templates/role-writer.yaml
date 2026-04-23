@@ -16,6 +16,7 @@ rules:
 - apiGroups:
   - s3files.services.k8s.aws
   resources:
+  - filesystems
   verbs:
   - create
   - delete
@@ -27,6 +28,7 @@ rules:
 - apiGroups:
   - s3files.services.k8s.aws
   resources:
+  - filesystems
   verbs:
   - get
   - patch
